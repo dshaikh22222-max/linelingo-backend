@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import axios from "axios"; // ✅ CHANGE
 
 dotenv.config();
 
@@ -8,7 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ✅ IMPORTANT — ROOT ROUTE (ye missing tha)
+// ✅ test route
 app.get("/", (req, res) => {
   res.send("Backend running 🚀");
 });
@@ -17,26 +18,26 @@ app.post("/api/decode", async (req, res) => {
   try {
     const { prompt, model } = req.body;
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
         model: model || "google/gemini-2.0-flash-exp:free",
         messages: [{ role: "user", content: prompt }],
-      }),
-    });
-
-    const data = await response.json();
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     res.json({
-      result: data.choices?.[0]?.message?.content || "No response"
+      result: response.data.choices?.[0]?.message?.content || ""
     });
 
   } catch (e) {
-    console.log(e);
+    console.log("ERROR:", e.message);
     res.status(500).json({ error: "Backend error" });
   }
 });

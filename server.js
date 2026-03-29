@@ -1,10 +1,17 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors());
+
+// ✅ IMPORTANT — ROOT ROUTE (ye missing tha)
+app.get("/", (req, res) => {
+  res.send("Backend running 🚀");
+});
 
 app.post("/api/decode", async (req, res) => {
   try {
@@ -24,21 +31,18 @@ app.post("/api/decode", async (req, res) => {
 
     const data = await response.json();
 
-    if (!data.choices) {
-      return res.status(400).json({ error: "AI response invalid" });
-    }
-
     res.json({
-      result: data.choices[0].message.content,
+      result: data.choices?.[0]?.message?.content || "No response"
     });
 
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ error: "Backend error" });
   }
 });
 
-// 🔥 IMPORTANT
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => {
+
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
